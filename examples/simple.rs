@@ -1,8 +1,8 @@
 use anyhow::Result;
-use udp_socket::{BATCH_SIZE, EcnCodepoint, RecvMeta, Transmit, UdpSocket};
 use std::io::IoSliceMut;
 use std::net::Ipv4Addr;
 use std::time::Instant;
+use udp_socket::{EcnCodepoint, RecvMeta, Transmit, UdpSocket, BATCH_SIZE};
 
 fn main() -> Result<()> {
     env_logger::init();
@@ -41,7 +41,12 @@ fn main() -> Result<()> {
         let mut meta = [RecvMeta::default(); BATCH_SIZE];
         let n = socket2.recv(&mut buffers, &mut meta).await.unwrap();
         for i in 0..n {
-            log::debug!("received {} {:?} {:?}", i, &buffers[i][..meta[i].len], &meta[i]);
+            log::debug!(
+                "received {} {:?} {:?}",
+                i,
+                &buffers[i][..meta[i].len],
+                &meta[i]
+            );
         }
     });
 
@@ -49,7 +54,11 @@ fn main() -> Result<()> {
         let start = Instant::now();
         task1.await;
         task2.await;
-        println!("sent {} packets in {}ms", BATCH_SIZE, start.elapsed().as_millis());
+        println!(
+            "sent {} packets in {}ms",
+            BATCH_SIZE,
+            start.elapsed().as_millis()
+        );
     });
 
     Ok(())

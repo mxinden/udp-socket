@@ -5,6 +5,7 @@ use std::io::{IoSliceMut, Result};
 use std::net::SocketAddr;
 use std::task::{Context, Poll};
 
+#[derive(Debug)]
 pub struct UdpSocket {
     inner: Async<std::net::UdpSocket>,
 }
