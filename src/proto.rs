@@ -51,7 +51,7 @@ impl Default for RecvMeta {
 
 /// Explicit congestion notification codepoint
 #[repr(u8)]
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum EcnCodepoint {
     #[doc(hidden)]
     ECT0 = 0b10,
@@ -74,4 +74,15 @@ impl EcnCodepoint {
             }
         })
     }
+}
+
+/// Socket type.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum SocketType {
+    /// Socket is bound to an ip4 address.
+    Ipv4,
+    /// Socket is bound to an ip6 address and is not dual stack.
+    Ipv6Only,
+    /// Socket is bound to an ip6 address and supports ip4 packets.
+    Ipv6,
 }

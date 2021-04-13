@@ -1,4 +1,4 @@
-use crate::proto::{RecvMeta, Transmit, UdpCapabilities};
+use crate::proto::{RecvMeta, SocketType, Transmit, UdpCapabilities};
 use async_io::Async;
 use futures_lite::future::poll_fn;
 use std::io::{IoSliceMut, Result};
@@ -8,6 +8,7 @@ use std::task::{Context, Poll};
 #[derive(Debug)]
 pub struct UdpSocket {
     inner: Async<std::net::UdpSocket>,
+    ty: SocketType,
 }
 
 impl UdpSocket {
@@ -23,12 +24,21 @@ impl UdpSocket {
 
     pub fn bind(addr: SocketAddr) -> Result<Self> {
         let socket = std::net::UdpSocket::bind(addr)?;
-        if cfg!(unix) {
-            crate::unix::init(&socket)?;
-        }
+        let ty = if cfg!(unix) {
+            crate::unix::init(&socket)?
+        } else if addr.is_ipv4() {
+            SocketType::Ipv4
+        } else {
+            SocketType::Ipv6Only
+        };
         Ok(Self {
             inner: Async::new(socket)?,
+            ty,
         })
+    }
+
+    pub fn socket_type(&self) -> SocketType {
+        self.ty
     }
 
     pub fn local_addr(&self) -> Result<SocketAddr> {
