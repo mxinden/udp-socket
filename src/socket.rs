@@ -98,11 +98,11 @@ impl UdpSocket {
 mod fallback {
     use super::*;
 
-    fn max_gso_segments() -> Result<usize> {
+    pub fn max_gso_segments() -> Result<usize> {
         Ok(1)
     }
 
-    fn init(socket: &std::net::UdpSocket) -> Result<SocketType> {
+    pub fn init(socket: &std::net::UdpSocket) -> Result<SocketType> {
         Ok(if socket.local_addr()?.is_ipv4() {
             SocketType::Ipv4
         } else {
@@ -110,7 +110,7 @@ mod fallback {
         })
     }
 
-    fn send(socket: &std::net::UdpSocket, transmits: &[Transmit]) -> Result<usize> {
+    pub fn send(socket: &std::net::UdpSocket, transmits: &[Transmit]) -> Result<usize> {
         let mut sent = 0;
         for transmit in transmits {
             match socket.send_to(&transmit.contents, &transmit.destination) {
@@ -131,7 +131,7 @@ mod fallback {
         Ok(sent)
     }
 
-    fn recv(
+    pub fn recv(
         socket: &std::net::UdpSocket,
         buffers: &mut [IoSliceMut<'_>],
         meta: &mut [RecvMeta],
