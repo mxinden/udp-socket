@@ -438,6 +438,7 @@ fn decode_recv(
     }
 }
 
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn max_gso_segments() -> io::Result<usize> {
     // Checks whether GSO support is availably by setting the UDP_SEGMENT
     // option on a socket.
@@ -459,4 +460,9 @@ pub fn max_gso_segments() -> io::Result<usize> {
     } else {
         1
     })
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "android")))]
+pub fn max_gso_segments() -> io::Result<usize> {
+    Ok(1)
 }
