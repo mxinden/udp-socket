@@ -50,6 +50,7 @@ impl Default for RecvMeta {
 }
 
 /// Explicit congestion notification codepoint
+#[allow(clippy::upper_case_acronyms)]
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum EcnCodepoint {

@@ -69,7 +69,8 @@ pub fn init(io: &UdpSocket) -> io::Result<SocketType> {
             }
         }
 
-        if cfg!(target_os = "linux") {
+        #[cfg(any(target_os = "linux", target_os = "android"))]
+        {
             let rc = unsafe {
                 libc::setsockopt(
                     io.as_raw_fd(),
@@ -113,7 +114,8 @@ pub fn init(io: &UdpSocket) -> io::Result<SocketType> {
             return Err(io::Error::last_os_error());
         }
 
-        if cfg!(target_os = "linux") {
+        #[cfg(any(target_os = "linux", target_os = "android"))]
+        {
             let rc = unsafe {
                 libc::setsockopt(
                     io.as_raw_fd(),
@@ -335,32 +337,32 @@ fn prepare_msg(
         encoder.push(libc::IPPROTO_IPV6, libc::IPV6_TCLASS, ecn);
     }
 
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     if let Some(segment_size) = transmit.segment_size {
         encoder.push(libc::SOL_UDP, libc::UDP_SEGMENT, segment_size as u16);
     }
 
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     if let Some(ip) = &transmit.src_ip {
-        if cfg!(target_os = "linux") {
-            match ip {
-                IpAddr::V4(v4) => {
-                    let pktinfo = libc::in_pktinfo {
-                        ipi_ifindex: 0,
-                        ipi_spec_dst: libc::in_addr {
-                            s_addr: u32::from_ne_bytes(v4.octets()),
-                        },
-                        ipi_addr: libc::in_addr { s_addr: 0 },
-                    };
-                    encoder.push(libc::IPPROTO_IP, libc::IP_PKTINFO, pktinfo);
-                }
-                IpAddr::V6(v6) => {
-                    let pktinfo = libc::in6_pktinfo {
-                        ipi6_ifindex: 0,
-                        ipi6_addr: libc::in6_addr {
-                            s6_addr: v6.octets(),
-                        },
-                    };
-                    encoder.push(libc::IPPROTO_IPV6, libc::IPV6_PKTINFO, pktinfo);
-                }
+        match ip {
+            IpAddr::V4(v4) => {
+                let pktinfo = libc::in_pktinfo {
+                    ipi_ifindex: 0,
+                    ipi_spec_dst: libc::in_addr {
+                        s_addr: u32::from_ne_bytes(v4.octets()),
+                    },
+                    ipi_addr: libc::in_addr { s_addr: 0 },
+                };
+                encoder.push(libc::IPPROTO_IP, libc::IP_PKTINFO, pktinfo);
+            }
+            IpAddr::V6(v6) => {
+                let pktinfo = libc::in6_pktinfo {
+                    ipi6_ifindex: 0,
+                    ipi6_addr: libc::in6_addr {
+                        s6_addr: v6.octets(),
+                    },
+                };
+                encoder.push(libc::IPPROTO_IPV6, libc::IPV6_PKTINFO, pktinfo);
             }
         }
     }
