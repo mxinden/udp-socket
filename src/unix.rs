@@ -337,7 +337,7 @@ fn prepare_msg(
         encoder.push(libc::IPPROTO_IPV6, libc::IPV6_TCLASS, ecn);
     }
 
-    #[cfg(any(target_os = "linux", target_os = "android"))]
+    #[cfg(target_os = "linux")]
     if let Some(segment_size) = transmit.segment_size {
         encoder.push(libc::SOL_UDP, libc::UDP_SEGMENT, segment_size as u16);
     }
@@ -438,7 +438,7 @@ fn decode_recv(
     }
 }
 
-#[cfg(any(target_os = "linux", target_os = "android"))]
+#[cfg(target_os = "linux")]
 pub fn max_gso_segments() -> io::Result<usize> {
     // Checks whether GSO support is availably by setting the UDP_SEGMENT
     // option on a socket.
@@ -462,7 +462,7 @@ pub fn max_gso_segments() -> io::Result<usize> {
     })
 }
 
-#[cfg(not(any(target_os = "linux", target_os = "android")))]
+#[cfg(not(target_os = "linux"))]
 pub fn max_gso_segments() -> io::Result<usize> {
     Ok(1)
 }
