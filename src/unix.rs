@@ -1,5 +1,6 @@
+use crate::cmsg;
 use crate::proto::{EcnCodepoint, RecvMeta, SocketType, Transmit};
-use crate::{cmsg, BATCH_SIZE};
+use std::net::{Ipv4Addr, Ipv6Addr, SocketAddrV4, SocketAddrV6};
 use std::{
     io,
     io::IoSliceMut,
@@ -413,8 +414,26 @@ fn decode_recv(
     }
 
     let source = match libc::c_int::from(name.ss_family) {
-        libc::AF_INET => unsafe { SocketAddr::V4(ptr::read(&name as *const _ as _)) },
-        libc::AF_INET6 => unsafe { SocketAddr::V6(ptr::read(&name as *const _ as _)) },
+        libc::AF_INET => {
+            let addr: &libc::sockaddr_in =
+                unsafe { &*(&name as *const _ as *const libc::sockaddr_in) };
+
+            SocketAddr::V4(SocketAddrV4::new(
+                Ipv4Addr::from(addr.sin_addr.s_addr.to_ne_bytes()),
+                u16::from_be(addr.sin_port),
+            ))
+        }
+        libc::AF_INET6 => {
+            let addr: &libc::sockaddr_in6 =
+                unsafe { &*(&name as *const _ as *const libc::sockaddr_in6) };
+
+            SocketAddr::V6(SocketAddrV6::new(
+                Ipv6Addr::from(addr.sin6_addr.s6_addr),
+                u16::from_be(addr.sin6_port),
+                addr.sin6_flowinfo,
+                addr.sin6_scope_id,
+            ))
+        }
         _ => unreachable!(),
     };
 
